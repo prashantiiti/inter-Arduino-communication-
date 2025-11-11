@@ -1,0 +1,90 @@
+#include <SoftwareSerial.h>
+SoftwareSerial BT(10, 11); // RX, TX for HC-05
+
+String morseinput;
+String decodedmessage = "";
+
+String morseLetters[] = { ".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..",
+                          ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.",
+                          "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--.." };
+
+char englishLetters[] = { 'A','B','C','D','E','F','G','H','I',
+                          'J','K','L','M','N','O','P','Q','R',
+                          'S','T','U','V','W','X','Y','Z' };
+
+const String correctPin = "1234"; // Set  PIN 
+
+void setup() {
+  Serial.begin(9600);
+  BT.begin(9600);
+}
+
+void loop() {
+  if (BT.available()) {
+    morseinput = BT.readStringUntil('\n'); 
+    morseinput.trim();
+
+    Serial.println("Enter PIN:");
+    int attempts = 0;
+
+    while (attempts < 3) {
+      if (Serial.available()) {
+        String enteredPin = Serial.readStringUntil('\n');
+        enteredPin.trim();
+        if (enteredPin == correctPin) {
+          decodedmessage = morsedecoder(morseinput);
+   
+          Serial.println("Entered PIN is correct \n");
+          Serial.println("Decoded message is :");
+
+          Serial.println(decodedmessage);
+          attempts = 0;
+          break;  
+        } else {
+          attempts++;
+          if (attempts < 3) {
+            Serial.println("Wrong PIN \n");  
+            Serial.println("Try again  PIN:");  
+          }
+        }
+      }
+    }
+
+    if (attempts >= 3) {
+      morseinput = "";  
+      Serial.println("Wrong PIN 3 times. Morse code deleted.");
+      attempts = 0;
+    }
+  }
+}
+
+
+String morsedecoder(String input) {
+  int spacecount = 0;
+  input += "  ";
+  String symbol = "";
+  String result = "";
+
+  for (int i = 0; i < input.length(); i++) {
+    char c = input[i];
+    if (c == ' ') {
+      if (symbol.length() > 0) {
+        result += morseTOletter(symbol);
+        symbol = "";
+      }
+      spacecount++;
+      if (spacecount == 2) { result += " "; spacecount = 0; }
+    } else {
+      symbol += c;
+      spacecount = 0;
+    }
+  }
+  return result;
+}
+
+char morseTOletter(String symbol1) {
+  for (int i = 0; i < 26; i++) {
+    if (symbol1 == morseLetters[i]) return englishLetters[i];
+  }
+  return '?';
+}
