@@ -1,0 +1,52 @@
+#include <SoftwareSerial.h>
+SoftwareSerial BT(10, 11); // RX = 10, TX = 11
+
+int button1 = A0;  
+int button2 = A1; 
+int button3 = A2; 
+int button4 = A3;
+String morsecode = "";
+int statenew1, statenew2, statenew3, statenew4;
+int stateold1 = HIGH, stateold2 = HIGH, stateold3 = HIGH, stateold4 = HIGH;
+
+void setup() {
+  pinMode(button1, INPUT_PULLUP);
+  pinMode(button2, INPUT_PULLUP);
+  pinMode(button3, INPUT_PULLUP);
+  pinMode(button4, INPUT_PULLUP);
+  Serial.begin(9600);
+  BT.begin(9600);
+}
+void loop() {
+  statenew1 = digitalRead(button1);
+  statenew2 = digitalRead(button2);
+  statenew3 = digitalRead(button3);
+  statenew4 = digitalRead(button4);
+  if (stateold1 == LOW && statenew1 == HIGH) {
+    morsecode += ".";
+    Serial.print(".");
+    delay(200);
+  }
+  if (stateold2 == LOW && statenew2 == HIGH) {
+    morsecode += "-";
+    Serial.print("-");
+    delay(200);
+  }
+  if (stateold3 == LOW && statenew3 == HIGH) {
+    morsecode += " ";
+    Serial.print(" ");
+    delay(200);
+  }
+  if (stateold4 == LOW && statenew4 == HIGH) {
+    Serial.println("\nMorse code sent:");
+    Serial.println(morsecode);
+    BT.println(morsecode); 
+    Serial.println("\n Enter new morse code :");
+    morsecode = ""; 
+    delay(500);
+  }
+  stateold1 = statenew1;
+  stateold2 = statenew2;
+  stateold3 = statenew3;
+  stateold4 = statenew4;
+}
